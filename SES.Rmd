@@ -1,0 +1,119 @@
+---
+title: "Untitled"
+author: "Nati"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library (leaflet)
+library(grid)
+library(esquisse)
+library(readxl)
+library(sf)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(Rnssp)
+library(ggplot2)
+library(plotly)
+library(htmlwidgets)
+data <- read_excel("C:/Users/natit/OneDrive/Desktop/Global Health/Semester 4/capstone/GROUP PROJECT/data/DomainSES.xlsx")
+
+```
+
+```{r, echo=FALSE}
+
+data$Domain<- as.factor(data$Domain)
+
+data$RowPercent<- as.numeric((data$RowPercent))
+data$Percent<- as.numeric((data$Percent))
+
+```
+
+```{r, echo= FALSE}
+#SEX_labels <- c('1' = 'Male', '2' = 'Female')
+#data$SEX <- recode(data$SEX, !!!SEX_labels)
+reason_labeles<- c('1' = ' safety and effectiveness concerns', '2'= 'systemic barriers', '3' = 'Vaccine misinformation', '4'= 'Sociocultural barriers','5' = ' Already up-to-date', '6'= 'Personal reasons','7' = ' handicapped/special needs/ illness', '8'= 'Lack of Knowledge','9' = ' Other reasons', '10'= 'Intention to complete; not completed')
+data$Domain <- recode(data$Domain, !!!reason_labeles)
+```
+
+
+
+```{r, echo= FALSE}
+library(ggplot2)
+a<-ggplot(data) +
+  aes(x = SES, y = RowPercent, fill = Domain, text = paste("Poverty level:", SES, "<br>Percentage:", RowPercent, "<br>Reason Domain:", Domain)) +
+  geom_col(position = "stack") +
+   scale_fill_hue(direction = 1) +
+  labs(title = "Fig1: Percentage of reasons for HPV vaccine hesistancy among US Teens(13-17) stratified by Poverty status level ",  y = "Percentage", fill = "HPV Vaccine Hesitancy reason") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),  plot.title = element_text(hjust = 0.5), plot.caption = element_text(face = "italic",
+    hjust = 0)) +
+facet_wrap(vars(SES), scales = "free")
+#geom_text(aes(label = paste0(round(Percent, 1), "%")), position = position_stack(vjust = 0.5), size = 3, color = "black")+
+     
+
+c<- ggplotly(a, tooltip= "text")
+
+c
+#htmlwidgets::saveWidget(c, "Reasons By poverty status.html")
+```
+
+```{r}
+library(DT)
+dt<- datatable(data,  rownames= FALSE, extensions= 'Buttons', options = list(dom='Bfrtip', buttons= list(extend= 'pdf', pageOrientation='landscape' ), list(extend ="doc")), caption= "Table: Reasons for HPV vaccine hesitancy  among US teens (13-18) stratifed by poverty status")
+htmlwidgets::saveWidget(dt, "Reason_Vs_SES.html")
+dt
+```
+
+```{r}
+data <- read_excel("C:/Users/natit/OneDrive/Desktop/Global Health/Semester 4/capstone/GROUP PROJECT/data/DomainSEShhs.xlsx")
+data$Region <-as.factor(data$Region)
+data$Domain<- as.factor(data$Domain)
+#data$SEX<- as.factor(data$SEX)
+data$RowPercent<- as.numeric((data$RowPercent))
+data$Percent<- as.numeric((data$Percent))
+data$Frequency<- as.numeric((data$Frequency))
+data$WeightedFrequency<- as.numeric((data$WeightedFrequency))
+```
+
+```{r}
+#SEX_labels <- c('1' = 'Male', '2' = 'Female')
+#data$SEX <- recode(data$SEX, !!!SEX_labels)
+reason_labeles<- c('1' = ' safety and effectiveness concerns', '2'= 'systemic barriers', '3' = 'Vaccine misinformation', '4'= 'Sociocultural barriers','5' = ' Already up-to-date', '6'= 'Personal reasons','7' = ' handicapped/special needs/ illness', '8'= 'Lack of Knowledge','9' = ' Other reasons', '10'= 'Intention to complete; not completed')
+data$Domain <- recode(data$Domain, !!!reason_labeles)
+region_labeles<- c('1' = ' Region 1', '2'= 'Region 2', '3' = 'Region 3', '4'= 'Region 4','5' = ' Region 5', '6'= 'Region 6','7' = ' Region 7', '8'= 'Region 8','9' = ' Region 9', '10'= 'Region 10')
+data$Region <- recode(data$Region, !!!region_labeles)
+```
+
+
+
+```{r, echo= FALSE}
+library(ggplot2)
+library(plotly)
+a<-ggplot(data) +
+  aes(x = SES, y = WeightedFrequency, fill = Domain, text = paste("Poverty level", SES, "<br>Percentage:", RowPercent, "<br>Reason Domain:", Domain, "<br>Count:", WeightedFrequency)) +
+  geom_col(position = "dodge2") +
+   scale_fill_hue(direction = 1) +
+  labs(title = "Fig1: Percentage of reasons for HPV vaccine hesistancy among Teens(13-17) across the 10 HHS US Regions stratified by Poverty level ", x = "Poverty level", y = "Number of people", fill = "HPV Vaccine Hesitancy reason") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  plot.title = element_text(hjust = 0.5), plot.caption = element_text(face = "italic",
+    hjust = 0)) +
+  facet_wrap(vars(Region), scales = "free")
+  #geom_text(aes(label = paste0(round(Percent, 1), "%")), position = position_stack(vjust = 0.5), size = 3, color = "black")+
+     
+
+c<- ggplotly(a, tooltip= "text")
+
+c
+htmlwidgets::saveWidget(c, "Final Reasons By SES across HHS region.html")
+```
+
+```{r}
+library(DT)
+dt<- datatable(data,  rownames= FALSE, extensions= 'Buttons', options = list(dom='Bfrtip', buttons= list(extend= 'pdf', pageOrientation='landscape' ), list(extend ="doc")), caption= "Table: Reasons for HPV vaccine hesitancy  among US teens (13-18) stratifed by poverty status")
+htmlwidgets::saveWidget(dt, "Reason_Vs_SES_Vs_Region table.html")
+dt
+```
+
